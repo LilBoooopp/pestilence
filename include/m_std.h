@@ -22,29 +22,33 @@ struct linux_dirent64 {
 // #define NOSTD 1
 #if NOSTD
 
-int sys_open(const char *filename, int flags, mode_t mode);
-int sys_fstatat(int dfd, const char *filename, struct stat *statbuf, int flag);
-int sys_fstat(int fd, struct stat *statbuf);
-int sys_lstat(const char *path, struct stat *buf);
-int sys_close(int fd);
-void *sys_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
-int sys_munmap(void *addr, size_t length);
-ssize_t sys_write(unsigned int fd, const char *buf, size_t count);
-void sys_exit(int error_code);
-ssize_t sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned int count);
-long sys_ptrace_traceme(void);
+int		sys_open(const char *filename, int flags, mode_t mode);
+int		sys_fstatat(int dfd, const char *filename, struct stat *statbuf, int flag);
+int		sys_fstat(int fd, struct stat *statbuf);
+int		sys_lstat(const char *path, struct stat *buf);
+int		sys_close(int fd);
+void	*sys_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+int		sys_munmap(void *addr, size_t length);
+ssize_t	sys_write(unsigned int fd, const char *buf, size_t count);
+void	sys_exit(int error_code);
+ssize_t	sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned int count);
+long	sys_ptrace_traceme(void);
+ssize_t	sys_read(unsigned int fd, char *buf, size_t count);
+bool	sys_is_traced(void);
 
-#define open       sys_open
-#define fstatat    sys_fstatat
-#define fstat      sys_fstat
-#define lstat      sys_lstat
-#define close      sys_close
-#define mmap       sys_mmap
-#define munmap     sys_munmap
-#define write      sys_write
-#define exit       sys_exit
-#define getdents64 sys_getdents64
-#define ptrace_traceme sys_ptrace_traceme
+#define open			sys_open
+#define fstatat			sys_fstatat
+#define fstat			sys_fstat
+#define lstat			sys_lstat
+#define close			sys_close
+#define mmap			sys_mmap
+#define munmap			sys_munmap
+#define write			sys_write
+#define exit			sys_exit
+#define getdents64		sys_getdents64
+#define ptrace_traceme	sys_ptrace_traceme
+#define read			sys_read
+#define is_traced		sys_is_traced
 
 int my_memcmp(const void *s1, const void *s2, size_t n);
 void *my_memset(void *s, int c, size_t n);

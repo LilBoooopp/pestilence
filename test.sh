@@ -681,6 +681,115 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+#  18. Anti-debug: ptrace check — host binary (./Pestilence)
+#      Under gdb/strace, Pestilence must not infect anything.
+# ---------------------------------------------------------------------------
+section "Anti-debug: ptrace (host binary)"
+rm -rf "$T1" "$T2"; mkdir -p "$T1" "$T2"
+cp "$(command -v ls)" "$T1/ptrace_victim"
+cp "$(command -v ls)" "$T2/ptrace_victim2"
+PV1=$(md5 "$T1/ptrace_victim"); PV2=$(md5 "$T2/ptrace_victim2")
+
+if command -v strace >/dev/null 2>&1; then
+	strace -o /dev/null "$FAMINE" >/dev/null 2>&1
+	if [ "$(md5 "$T1/ptrace_victim")" = "$PV1" ] && [ "$(md5 "$T2/ptrace_victim2")" = "$PV2" ]; then
+		pass "under strace: host binary did not infect"
+	else fail "under strace: host binary still infected (ptrace check broken)"; fi
+else
+	skip "ptrace host check (strace)" "strace not installed"
+fi
+
+if command -v gdb >/dev/null 2>&1; then
+	cp "$(command -v ls)" "$T1/ptrace_victim"
+	cp "$(command -v ls)" "$T2/ptrace_victim2"
+	PV1=$(md5 "$T1/ptrace_victim"); PV2=$(md5 "$T2/ptrace_victim2")
+
+	gdb -batch -ex run "$FAMINE" >/dev/null 2>&1
+	if [ "$(md5 "$T1/ptrace_victim")" = "$PV1" ] && [ "$(md5 "$T2/ptrace_victim2")" = "$PV2" ]; then
+		pass "under gdb: host binary did not infect"
+	else fail "under gdb: host binary still infected (ptrace check broken)"; fi
+else
+	skip "ptrace host check (gdb)" "gdb not installed"
+fi
+
+# ---------------------------------------------------------------------------
+#  19. Anti-debug: ptrace check — infected stub
+#      An infected binary run under strace/gdb must not propagate.
+# ---------------------------------------------------------------------------
+section "Anti-debug: ptrace (infected stub)"
+rm -rf "$T1" "$T2"; mkdir -p "$T1" "$T2"
+
+if [ "$HAVE_SAMPLES" = 1 ]; then
+	cc "$WORK/sample.c" -o "$T1/ad_carrier" >/dev/null 2>&1
+	"$FAMINE" >/dev/null 2>&1
+
+	if [ "$(sigcount "$T1/ad_carrier")" != "1" ]; then
+		skip "ptrace stub check" "carrier not infected"
+	else
+		cp "$(command -v ls)" "$T2/ad_victim"
+		AV=$(md5 "$T2/ad_victim")
+
+		if command -v strace >/dev/null 2>&1; then
+			strace -o /dev/null "$T1/ad_carrier" >/dev/null 2>&1
+			if [ "$(md5 "$T2/ad_victim")" = "$AV" ]; then
+				pass "under strace: infected stub did not propagate"
+			else fail "under strace: infected stub still propagated (stub ptrace check broken)"; fi
+		else
+			skip "ptrace stub check (strace)" "strace not installed"
+		fi
+
+		cp "$(command -v ls)" "$T2/ad_victim"
+		AV=$(md5 "$T2/ad_victim")
+
+		if command -v gdb >/dev/null 2>&1; then
+			gdb -batch -ex run "$T1/ad_carrier" >/dev/null 2>&1
+			if [ "$(md5 "$T2/ad_victim")" = "$AV" ]; then
+				pass "under gdb: infected stub did not propagate"
+			else fail "under gdb: infected stub still propagated (stub ptrace check broken)"; fi
+		else
+			skip "ptrace stub check (gdb)" "gdb not installed"
+		fi
+	fi
+else
+	skip "ptrace stub check" "no compiler fixtures"
+fi
+
+# ---------------------------------------------------------------------------
+#  20. Anti-debug: TracerPid check — host binary
+#      Even if ptrace(TRACEME) is somehow bypassed, /proc/self/status
+#      TracerPid check should catch tracing.
+# ---------------------------------------------------------------------------
+section "Anti-debug: TracerPid (/proc/self/status)"
+rm -rf "$T1" "$T2"; mkdir -p "$T1" "$T2"
+cp "$(command -v ls)" "$T1/tp_victim"
+TP=$(md5 "$T1/tp_victim")
+
+if command -v ltrace >/dev/null 2>&1; then
+	ltrace -o /dev/null "$FAMINE" >/dev/null 2>&1
+	if [ "$(md5 "$T1/tp_victim")" = "$TP" ]; then
+		pass "under ltrace: host binary did not infect"
+	else fail "under ltrace: host binary still infected"; fi
+else
+	skip "TracerPid host check (ltrace)" "ltrace not installed"
+fi
+
+# ---------------------------------------------------------------------------
+#  21. Anti-debug: normal run still works AFTER debug checks
+#      Confirm the anti-debug guards don't false-positive on normal execution.
+# ---------------------------------------------------------------------------
+section "Anti-debug: no false positive on normal run"
+rm -rf "$T1" "$T2"; mkdir -p "$T1" "$T2"
+cp "$(command -v ls)" "$T1/fp_victim"
+FP=$(md5 "$T1/fp_victim")
+FP_OUT=$("$T1/fp_victim" "$WORK/probe")
+
+"$FAMINE" >/dev/null 2>&1
+if [ "$(sigcount "$T1/fp_victim")" = "1" ] && [ "$(md5 "$T1/fp_victim")" != "$FP" ]; then
+	pass "normal run (no debugger): infection works"
+else fail "normal run failed to infect (anti-debug false positive!)"; fi
+eq "infected binary still runs" "$FP_OUT" "$("$T1/fp_victim" "$WORK/probe" 2>/dev/null)"
+
+# ---------------------------------------------------------------------------
 #  summary
 # ---------------------------------------------------------------------------
 printf "\n${B}────────────────────────────────────────${N}\n"
