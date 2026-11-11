@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================================
-#  Famine — regression test suite
+#  Pestilence — regression test suite
 #
 #  Run from the project root ON THE PROJECT VM:   ./test.sh
-#  Rebuilds Famine if missing;  pass --rebuild to force `make re` first.
+#  Rebuilds Pestilence if missing;  pass --rebuild to force `make re` first.
 #
 #  Exit status: 0 if every test passes, 1 otherwise — so it drops straight
 #  into a pre-commit hook or `make test` without extra plumbing.
@@ -17,7 +17,7 @@
 set -u
 
 # ---- config ---------------------------------------------------------------
-FAMINE="${FAMINE:-./Famine}"
+FAMINE="${FAMINE:-./Pestilence}"
 T1="/tmp/test"
 T2="/tmp/test2"
 T3="/tmp/test3"                   # a sibling dir that is NOT a target
@@ -55,11 +55,11 @@ fi
 if [ ! -x "$FAMINE" ]; then
 	make >/dev/null 2>&1
 fi
-if [ -x "$FAMINE" ]; then pass "Famine binary present"; else
-	fail "Famine binary missing — build failed"; printf "\nAborting.\n"; exit 1
+if [ -x "$FAMINE" ]; then pass "Pestilence binary present"; else
+	fail "Pestilence binary missing — build failed"; printf "\nAborting.\n"; exit 1
 fi
-if [ "$(basename "$FAMINE")" = "Famine" ]; then pass "executable is named 'Famine'"
-else fail "executable must be named 'Famine' (got '$(basename "$FAMINE")')"; fi
+if [ "$(basename "$FAMINE")" = "Pestilence" ]; then pass "executable is named 'Famine'"
+else fail "executable must be named 'Pestilence' (got '$(basename "$FAMINE")')"; fi
 
 # ---------------------------------------------------------------------------
 #  1. fixtures
@@ -139,7 +139,7 @@ eq  "stdout empty"            "0" "$(wc -c < "$WORK/out1" | tr -d ' ')"
 eq  "stderr empty"            "0" "$(wc -c < "$WORK/err1" | tr -d ' ')"
 if [ "$NAMES_BEFORE" = "$(ls -1a "$T1" "$T2" 2>/dev/null | sort)" ]; then
 	pass "no stray files created in target dirs (modifies in place only)"
-else fail "Famine added or removed files in the target dirs — not low-profile"; fi
+else fail "Pestilence added or removed files in the target dirs — not low-profile"; fi
 
 # ---------------------------------------------------------------------------
 #  4. infection correctness
@@ -300,12 +300,12 @@ fi
 # ---------------------------------------------------------------------------
 #  9. self-propagation — running an infected binary infects the folder
 #     The usage example shows a freshly recompiled binary gaining the
-#     signature after an infected binary is EXECUTED, with no ./Famine in
+#     signature after an infected binary is EXECUTED, with no ./Pestilence in
 #     between. That is the self-duplication the subject describes.
 #
-#     Attribution is the whole game here: the carrier is infected by ./Famine
+#     Attribution is the whole game here: the carrier is infected by ./Pestilence
 #     BEFORE the victim exists, the victim is dropped in AFTER, and then only
-#     the carrier is run — never ./Famine. So any signature the victim gains
+#     the carrier is run — never ./Pestilence. So any signature the victim gains
 #     can only have come from executing the carrier.
 #
 #     Expect RED until the stub carries the propagation payload — that red IS
@@ -316,18 +316,18 @@ section "Self-propagation (infected binary infects on execution)"
 if [ "$HAVE_SAMPLES" != 1 ]; then
 	skip "self-propagation" "no compiler fixtures"
 else
-	# 1. stage a carrier and let ./Famine infect it — victim does NOT exist yet
+	# 1. stage a carrier and let ./Pestilence infect it — victim does NOT exist yet
 	cc "$WORK/sample.c" -o "$T2/prop_carrier" >/dev/null 2>&1
 	"$FAMINE" >/dev/null 2>&1
 	if [ "$(sigcount "$T2/prop_carrier")" != "1" ]; then
 		skip "self-propagation" "carrier didn't get infected — fix base infection first"
 	else
-		# 2. NOW drop a fresh, unseen victim (./Famine never touched it)
+		# 2. NOW drop a fresh, unseen victim (./Pestilence never touched it)
 		cc "$WORK/sample.c" -o "$T1/prop_victim" >/dev/null 2>&1
 		VIC_OUT=$("$T1/prop_victim")
 		VIC_MD5=$(md5 "$T1/prop_victim")
 
-		# 3. run ONLY the carrier. No ./Famine. Any infection now is the payload's.
+		# 3. run ONLY the carrier. No ./Pestilence. Any infection now is the payload's.
 		#    Exact-match on output doubles as a payload-silence check: if the
 		#    stub printed anything while propagating, this would not equal the
 		#    program's own single line.
@@ -343,7 +343,7 @@ else
 
 		# 5. double-signature under propagation: run the carrier again; an
 		#    already-signed victim must stay byte-identical (guard holds in the
-		#    payload too, not just in ./Famine).
+		#    payload too, not just in ./Pestilence).
 		VIC_MD5_2=$(md5 "$T1/prop_victim")
 		"$T2/prop_carrier" >/dev/null 2>&1
 		if [ "$(md5 "$T1/prop_victim")" = "$VIC_MD5_2" ]; then
@@ -462,13 +462,13 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-#  12. explicit FILE target — ./Famine <file>
+#  12. explicit FILE target — ./Pestilence <file>
 #      Infects just that file. Because an argument is given, the default
 #      dirs (/tmp/test, /tmp/test2) must NOT be processed.
 # ---------------------------------------------------------------------------
 AT="/tmp/famine_arg"                 # scratch root OUTSIDE the default targets
 
-section "Explicit file target (./Famine <file>)"
+section "Explicit file target (./Pestilence <file>)"
 rm -rf "$T1" "$T2" "$AT"; mkdir -p "$T1" "$T2" "$AT"
 cp "$(command -v ls)" "$T1/default_canary"
 cp "$(command -v ls)" "$AT/file_target"
@@ -485,8 +485,8 @@ eq "file-arg run silent" "0" "$(( $(wc -c < "$WORK/outf") + $(wc -c < "$WORK/err
 # Check this BEFORE running the infected target: once it runs, its stub
 # propagates into /tmp/test* on purpose (tested in the stub section below).
 if [ "$(md5 "$T1/default_canary")" = "$DEF_CANARY_MD5" ]; then
-	pass "./Famine <file> does not itself touch the default dirs"
-else fail "./Famine <file> infected a default dir (executable targeting leaked)"; fi
+	pass "./Pestilence <file> does not itself touch the default dirs"
+else fail "./Pestilence <file> infected a default dir (executable targeting leaked)"; fi
 
 if [ "$(sigcount "$AT/file_target")" = "1" ] && [ "$(md5 "$AT/file_target")" != "$FT_MD5" ]; then
 	pass "explicit file target infected exactly once"
@@ -497,16 +497,16 @@ eq "explicit file target still runs identically" "$FT_OUT" "$("$AT/file_target" 
 AF_MD5=$(md5 "$AT/file_target")
 "$FAMINE" "$AT/file_target" >/dev/null 2>&1
 if [ "$(md5 "$AT/file_target")" = "$AF_MD5" ]; then
-	pass "re-running ./Famine on same file is a no-op (guard holds)"
+	pass "re-running ./Pestilence on same file is a no-op (guard holds)"
 else fail "explicit file re-infected on second run"; fi
 eq "explicit file signature still exactly once" "1" "$(sigcount "$AT/file_target")"
 
 # ---------------------------------------------------------------------------
-#  13. explicit DIRECTORY target — ./Famine <dir>/   (trailing slash)
+#  13. explicit DIRECTORY target — ./Pestilence <dir>/   (trailing slash)
 #      Infects ELF files directly in the dir, but must NOT descend into
 #      subdirectories without -r.
 # ---------------------------------------------------------------------------
-section "Explicit directory target (./Famine <dir>/, non-recursive)"
+section "Explicit directory target (./Pestilence <dir>/, non-recursive)"
 rm -rf "$AT"; mkdir -p "$AT/dir_target/sub"
 cp "$(command -v ls)" "$AT/dir_target/top_bin"
 cp "$(command -v ls)" "$AT/dir_target/sub/nested_bin"
@@ -529,10 +529,10 @@ if [ "$(md5 "$AT/dir_target/sub/nested_bin")" = "$NESTED_MD5" ]; then
 else fail "descended into a subdirectory without -r"; fi
 
 # ---------------------------------------------------------------------------
-#  14. recursive flag — ./Famine -r <dir>/ [more targets...]
+#  14. recursive flag — ./Pestilence -r <dir>/ [more targets...]
 #      Descends into subdirectories; also handles multiple targets after -r.
 # ---------------------------------------------------------------------------
-section "Recursive flag (./Famine -r <dir>/ ...)"
+section "Recursive flag (./Pestilence -r <dir>/ ...)"
 rm -rf "$AT"; mkdir -p "$AT/rec_target/sub/deeper"
 cp "$(command -v ls)" "$AT/rec_target/top_bin"
 cp "$(command -v ls)" "$AT/rec_target/sub/nested_bin"
@@ -628,15 +628,15 @@ rm -rf "$AT"
 
 # ---------------------------------------------------------------------------
 #  17. injected stub always targets /tmp/test and /tmp/test2, regardless of
-#      how Famine was invoked. The EXECUTABLE follows its args; the PAYLOAD
+#      how Pestilence was invoked. The EXECUTABLE follows its args; the PAYLOAD
 #      does not — an infected binary propagates into the default dirs even
-#      when Famine was pointed somewhere else entirely.
+#      when Pestilence was pointed somewhere else entirely.
 # ---------------------------------------------------------------------------
 section "Injected stub always targets the default dirs"
 rm -rf "$T1" "$T2" "$AT"; mkdir -p "$T1" "$T2" "$AT"
 
 # carrier infected via an EXPLICIT arg outside the default dirs —
-# ./Famine is never pointed at /tmp/test*.
+# ./Pestilence is never pointed at /tmp/test*.
 cp "$(command -v ls)" "$AT/stub_carrier"
 "$FAMINE" "$AT/stub_carrier" >/dev/null 2>&1
 
@@ -644,7 +644,7 @@ if [ "$(sigcount "$AT/stub_carrier")" != "1" ]; then
 	skip "stub default-dir targeting" "carrier wasn't infected"
 else
 	# fresh victims in BOTH default dirs, a sibling next to the carrier, and a
-	# nested victim in a default-dir subdir — all unseen by ./Famine, all
+	# nested victim in a default-dir subdir — all unseen by ./Pestilence, all
 	# staged BEFORE the carrier runs.
 	cp "$(command -v ls)"  "$T1/stub_victim1"
 	cp "$(command -v cat)" "$T2/stub_victim2"

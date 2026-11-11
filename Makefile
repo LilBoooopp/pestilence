@@ -1,5 +1,5 @@
 #───────────────────────────  PROJECT BASICS  ────────────────────────────────#
-NAME := Famine
+NAME := Pestilence
 DEBUG ?= 0
 XXD := xxd
 OBJCOPY := objcopy

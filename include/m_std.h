@@ -32,6 +32,7 @@ int sys_munmap(void *addr, size_t length);
 ssize_t sys_write(unsigned int fd, const char *buf, size_t count);
 void sys_exit(int error_code);
 ssize_t sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned int count);
+long sys_ptrace_traceme(void);
 
 #define open       sys_open
 #define fstatat    sys_fstatat
@@ -43,6 +44,7 @@ ssize_t sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned
 #define write      sys_write
 #define exit       sys_exit
 #define getdents64 sys_getdents64
+#define ptrace_traceme sys_ptrace_traceme
 
 int my_memcmp(const void *s1, const void *s2, size_t n);
 void *my_memset(void *s, int c, size_t n);

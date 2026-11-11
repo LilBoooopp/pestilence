@@ -16,6 +16,7 @@
 # include <unistd.h>
 # include <limits.h>
 # include "./m_std.h"
+#include <sys/ptrace.h>
 
 # if DEBUG && !NOSTD
 #  include <stdio.h>
