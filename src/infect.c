@@ -13,7 +13,7 @@ static void ffree(void *ptr, size_t size) {
 }
 
 __attribute__((section(".rodata.signature")))
-static volatile char const signature[] = "Famine version 1.0 (c)oded by cbopp-mvan-wij";
+static volatile char const signature[] = "Pestilence version 1.0 (c)oded by cbopp-mvan-wij";
 
 int infect_file(const char *path, const unsigned char *stub, size_t stub_len, size_t placeholders_offset)
 {

