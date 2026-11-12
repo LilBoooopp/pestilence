@@ -75,32 +75,13 @@ ssize_t sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned
 }
 
 // SYS_ptrace = 101 on x86_64
-long sys_ptrace_traceme(void) {
-	return syscall(SYS_ptrace, 0, 0, 0, 0);
+long sys_ptrace(long request, long pid, long addr, long data) {
+	return syscall_errno(SYS_ptrace, request, pid, addr, data);
 }
 
 ssize_t sys_read(unsigned int fd, char *buf, size_t count) {
 	return syscall_errno(SYS_read, fd, (size_t)buf, count);
 }
-
-bool sys_is_traced(void) {
-	int fd = sys_open("/proc/self/status", O_RDONLY, 0);
-	if (fd < 0)
-		return (false);
-	char buf[512];
-	ssize_t n = sys_read(fd, buf, sizeof(buf) - 1);
-	sys_close(fd);
-	if (n <= 0)
-		return (false);
-	buf[n] = '\0';
-	const char *needle = "TracerPid:\t";
-	char *p = my_memmem(buf, n, needle, 11);
-	if (!p)
-		return (false);
-	p += 11;
-	return (*p != '0' || (p[1] >= '0' && p[1] <= '9'));
-}
-
 
 
 int my_memcmp(const void *s1, const void *s2, size_t n) {
