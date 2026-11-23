@@ -45,6 +45,7 @@ ssize_t	sys_read(unsigned int fd, char *buf, size_t count);
 #define write			sys_write
 #define exit			sys_exit
 #define getdents64		sys_getdents64
+#define ptrace			sys_ptrace
 #define read			sys_read
 
 int my_memcmp(const void *s1, const void *s2, size_t n);

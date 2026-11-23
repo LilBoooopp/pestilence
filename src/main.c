@@ -27,7 +27,7 @@ void _start();
 #if CREATE_STUB
 
 int main(void) {
-	if (is_traced() || sys_ptrace(0, 0, 0, 0) == -1) {
+	if (is_traced() || ptrace(PTRACE_TRACEME, 0, 0, 0) == -1) {
 		return (0);
 	}
 	size_t offset = (uintptr_t)&placeholders - (uintptr_t)&_start;
