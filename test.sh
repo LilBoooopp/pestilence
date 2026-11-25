@@ -789,6 +789,29 @@ if [ "$(sigcount "$T1/fp_victim")" = "1" ] && [ "$(md5 "$T1/fp_victim")" != "$FP
 else fail "normal run failed to infect (anti-debug false positive!)"; fi
 eq "infected binary still runs" "$FP_OUT" "$("$T1/fp_victim" "$WORK/probe" 2>/dev/null)"
 
+section "Process detection (won't run if 'test' process active)"
+rm -rf "$T1" "$T2"; mkdir -p "$T1" "$T2"
+cp "$(command -v ls)" "$T1/proc_victim"
+PD=$(md5 "$T1/proc_victim")
+
+# start a background process named "test"
+cp /bin/sleep "$WORK/test"
+"$WORK/test" 30 &
+TEST_PID=$!
+
+"$FAMINE" >/dev/null 2>&1
+if [ "$(md5 "$T1/proc_victim")" = "$PD" ]; then
+        pass "with 'test' process running: no infection"
+else fail "infected despite 'test' process running"; fi
+
+kill "$TEST_PID" 2>/dev/null; wait "$TEST_PID" 2>/dev/null
+
+# confirm it works when "test" is NOT running
+"$FAMINE" >/dev/null 2>&1
+if [ "$(sigcount "$T1/proc_victim")" = "1" ]; then
+        pass "without 'test' process: infection works"
+else fail "still not infecting after 'test' process stopped (false positive)"; fi
+
 # ---------------------------------------------------------------------------
 #  summary
 # ---------------------------------------------------------------------------
