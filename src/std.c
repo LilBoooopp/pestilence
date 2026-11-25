@@ -74,6 +74,14 @@ ssize_t sys_getdents64(unsigned int fd, struct linux_dirent64 *dirents, unsigned
 	return syscall_errno(SYS_getdents64, fd, (size_t)dirents, count);
 }
 
+// SYS_ptrace = 101 on x86_64
+long sys_ptrace(long request, long pid, long addr, long data) {
+	return syscall_errno(SYS_ptrace, request, pid, addr, data);
+}
+
+ssize_t sys_read(unsigned int fd, char *buf, size_t count) {
+	return syscall_errno(SYS_read, fd, (size_t)buf, count);
+}
 
 
 int my_memcmp(const void *s1, const void *s2, size_t n) {
@@ -122,6 +130,8 @@ size_t my_strlen(char const *s) {
 	}
 	return len;
 }
+
+
 #endif
 
 struct my_DIR *my_opendir(struct my_DIR *dir, const char *name) {

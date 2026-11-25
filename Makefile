@@ -1,5 +1,5 @@
 #───────────────────────────  PROJECT BASICS  ────────────────────────────────#
-NAME := Famine
+NAME := Pestilence
 DEBUG ?= 0
 XXD := xxd
 OBJCOPY := objcopy
@@ -18,7 +18,7 @@ STUB_BIN := stub.bin
 
 #--------------------------------------SOURCES--------------------------------#
 SRC_DIR := src
-SHARED_SRC := main.c elf.c inject.c infect.c std.c walk.c x64-syscall.c
+SHARED_SRC := main.c elf.c inject.c infect.c std.c walk.c x64-syscall.c antidebug.c
 EXE_SRC := $(SHARED_SRC) stub_data.c
 STUB_SRC := $(SHARED_SRC)
 
